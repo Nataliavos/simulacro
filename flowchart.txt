@@ -1,0 +1,263 @@
+1. FORMAS QUE DEBES USAR (Norma estándar)
+Óvalo (Ellipse)
+
+Inicio
+
+Fin
+
+Paralelogramo (Parallelogram)
+
+Entrada de datos
+
+Salida de datos
+
+Mostrar menú
+
+Rectángulo (Process)
+
+Acciones
+
+Llamadas a funciones
+
+Cálculos
+
+Actualizaciones de inventario
+
+Creación de objetos
+
+Rombo (Decision)
+
+Validaciones
+
+Sí / No
+
+Selección de opción del menú
+
+Stock suficiente
+
+Producto existe
+
+Conectores
+
+Líneas rectas
+
+Flechas unidireccionales
+
+Evitar cruces cuando sea posible
+
+✅ 2. ESTRUCTURA PRINCIPAL DEL DIAGRAMA
+
+Tu proyecto tiene este diagrama principal:
+
+Start
+↓
+Initialize inventory (5 products)
+Initialize empty sales history
+↓
+Display main menu
+↓
+Decision: User selects option 1–7 or 0
+→ Cada rama va a su subproceso
+↓
+Al final, regresar al menú
+↓
+En Option 0 → End
+
+✅ 3. DETALLAR CADA OPCIÓN DEL MENÚ (LO QUE IRÁ EN EL DIAGRAMA)
+
+A continuación te escribo el flujo EXACTO, con cada paso y su tipo de forma, para que puedas dibujarlo tal como debe ser.
+
+⭐ OPCIÓN 1 — List products
+
+Paralelogramo: “User selects option 1”
+Rectángulo: “Retrieve inventory list”
+Paralelogramo: “Display product list”
+Rectángulo: “Pause / Wait for ENTER”
+Flecha: volver al menú
+
+⭐ OPCIÓN 2 — Add product
+
+Paralelogramo: “Enter product details” (name, brand…)
+Rombo: “Is input valid?”
+
+No → Mostrar error → volver al menú
+
+Sí → continuar
+
+Rectángulo: “Create product object”
+Rectángulo: “Assign new product ID”
+Rectángulo: “Add product to inventory”
+Rectángulo: “Pause”
+Volver al menú
+
+⭐ OPCIÓN 3 — Update product
+
+Paralelogramo: “Enter product ID”
+Rectángulo: “Find product”
+Rombo: “Product exists?”
+
+No → Show error → Return to menu
+
+Sí → continuar
+
+Paralelogramo: “Enter fields to update (empty = keep old)”
+Rombo: “Valid update?”
+
+No → Show error → Return
+
+Sí → continuar
+
+Rectángulo: “Apply updates to product”
+Rectángulo: “Pause”
+Volver al menú
+
+⭐ OPCIÓN 4 — Delete product
+
+Paralelogramo: “Enter product ID”
+Rectángulo: “Find product”
+Rombo: “Product exists?”
+
+No → Error → menú
+
+Sí → continuar
+
+Rombo: “Confirm delete? (Y/N)”
+
+No → Return to menu
+
+Sí → continuar
+
+Rectángulo: “Remove product from inventory”
+Rectángulo: “Pause”
+Volver al menú
+
+⭐ OPCIÓN 5 — Register sale
+
+Paralelogramo: “Enter customer name”
+Paralelogramo: “Choose customer type (Regular/VIP/Wholesale)”
+Rectángulo: “Determine discount based on type”
+
+Paralelogramo: “Enter product ID and quantity”
+Rectángulo: “Find product”
+Rombo: “Product exists?”
+
+No → Error → menú
+
+Sí → continuar
+
+Rombo: “Is stock sufficient?”
+
+No → Error → menú
+
+Sí → continuar
+
+Rectángulo: “Calculate gross = price × qty”
+Rectángulo: “Calculate discount = gross × discountRate”
+Rectángulo: “Calculate net = gross − discount”
+Rectángulo: “Create sale record object”
+Rectángulo: “Append sale to sales history”
+Rectángulo: “Update product stock and total_sold”
+
+Paralelogramo: “Display sale summary”
+Rectángulo: “Pause”
+Volver al menú
+
+⭐ OPCIÓN 6 — Show sales history
+
+Rectángulo: “Retrieve sales list”
+Paralelogramo: “Display sales history”
+Rectángulo: “Pause”
+Volver al menú
+
+⭐ OPCIÓN 7 — Reports (Sub-menú)
+Dentro del submenú:
+
+Paralelogramo: “Display reports sub-menu”
+Rombo: “Select report?”
+
+a) Top 3 best-selling products
+
+Rectángulo: Sort by total_sold
+Paralelogramo: Display top 3
+Volver al submenú
+
+b) Sales by brand
+
+Rectángulo: Group by brand
+Paralelogramo: Display results
+Volver al submenú
+
+c) Income report
+
+Rectángulo: Calculate gross income
+Rectángulo: Calculate net income
+Rectángulo: Calculate discounts
+Paralelogramo: Display income summary
+Volver al submenú
+
+d) Inventory performance
+
+Rectángulo: Calculate turnover = sold/(sold+stock)
+Paralelogramo: Display performance
+Volver al submenú
+
+e) Back to main menu
+
+Salir del submenú y volver
+
+⭐ OPCIÓN 0 — Exit
+
+Óvalo: End
+
+✅ 4. CÓMO ORGANIZARLO EN UN DIAGRAMA GIGANTE
+Recomendación de layout (muy importante)
+
+DIBÚJALO ASÍ:
+
+Inicio arriba
+
+Inicialización debajo
+
+Menú principal centrado
+
+Decisión “Select option” en grande
+
+Cada opción del 1 al 7 como ramas laterales
+
+Todas las ramas regresan con flechas hacia el menú principal
+
+Salida (Exit) abajo
+
+Ejemplo visual simplificado (texto)
+(Start)
+   ↓
+Initialize inventory
+Initialize sales history
+   ↓
+Display menu
+   ↓
+[Select option?]─┬─(1 List)
+                 ├─(2 Add)
+                 ├─(3 Update)
+                 ├─(4 Delete)
+                 ├─(5 Sale)
+                 ├─(6 History)
+                 ├─(7 Reports)
+                 └─(0 Exit → End)
+
+
+Cada rama se convierte en su bloque completo usando las descripciones que te di arriba.
+
+✅ 5. DÓNDE HACERLO (la mejor herramienta)
+
+📌 https://app.diagrams.net
+
+Ajustes recomendados:
+
+Page size: A3 (landscape)
+
+Grid: ON
+
+Shapes → Flowchart
+
+Connector: “Elbow” o “Orthogonal”
