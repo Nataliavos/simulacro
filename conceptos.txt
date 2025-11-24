@@ -1,0 +1,304 @@
+0. Conceptos rápidos para el examen
+
+Un .csv es texto: una fila por registro, columnas separadas por comas.
+
+No se puede “editar una sola línea” fácil → casi siempre es:
+
+Leer todo a una lista de registros.
+
+Modificar la lista.
+
+Reescribir el archivo completo.
+
+Usa siempre newline='' con csv para evitar líneas en blanco extra en Windows.
+
+1. Plantilla base: cargar y guardar CSV
+
+Supongamos un archivo inventario.csv con encabezado:
+
+id,name,price,quantity
+1,Libro,25.0,10
+
+1.1. Importar módulo csv
+import csv
+
+1.2. Leer CSV a una lista de diccionarios
+def cargar_csv(ruta):
+    """Lee un CSV y devuelve una lista de diccionarios."""
+    registros = []
+    with open(ruta, mode="r", newline="", encoding="utf-8") as f:
+        lector = csv.DictReader(f)  # usa la primera fila como encabezado
+        for fila in lector:
+            registros.append(dict(fila))  # cada fila es un dict
+    return registros
+
+1.3. Guardar lista de diccionarios en CSV
+def guardar_csv(ruta, registros, fieldnames):
+    """
+    Escribe la lista de diccionarios 'registros' en un CSV.
+    fieldnames es la lista de columnas en orden.
+    """
+    with open(ruta, mode="w", newline="", encoding="utf-8") as f:
+        escritor = csv.DictWriter(f, fieldnames=fieldnames)
+        escritor.writeheader()
+        escritor.writerows(registros)
+
+
+Tip examen: normalmente fieldnames lo sacas de las claves del primer registro:
+fieldnames = list(registros[0].keys()) (si no está vacío).
+
+2. CRUD básico sobre un CSV
+
+Trabajaremos sobre una lista registros que es el contenido del CSV.
+
+RUTA = "inventario.csv"
+CAMPOS = ["id", "name", "price", "quantity"]
+
+2.1. Create – Agregar registro
+def generar_nuevo_id(registros):
+    """Devuelve un nuevo id entero consecutivo."""
+    if not registros:
+        return 1
+    ids = [int(r["id"]) for r in registros]
+    return max(ids) + 1
+
+def agregar_registro(registros, name, price, quantity):
+    """Crea un nuevo registro y lo agrega a la lista."""
+    nuevo = {
+        "id": str(generar_nuevo_id(registros)),
+        "name": name,
+        "price": str(price),
+        "quantity": str(quantity)
+    }
+    registros.append(nuevo)
+    return registros
+
+
+Patrón de uso en el programa:
+
+registros = cargar_csv(RUTA)
+agregar_registro(registros, "Lapicero", 2.5, 100)
+guardar_csv(RUTA, registros, CAMPOS)
+
+2.2. Read – Mostrar / buscar registros
+
+Mostrar todos:
+
+def listar_registros(registros):
+    """Imprime todos los registros de forma simple."""
+    for r in registros:
+        print(r["id"], r["name"], r["price"], r["quantity"])
+
+
+Buscar por id:
+
+def buscar_por_id(registros, id_buscar):
+    """Devuelve el registro con ese id o None si no existe."""
+    for r in registros:
+        if r["id"] == str(id_buscar):
+            return r
+    return None
+
+2.3. Update – Editar registro
+def actualizar_registro(registros, id_buscar, nuevos_datos):
+    """
+    Actualiza el registro con ese id usando nuevos_datos (dict).
+    Ejemplo nuevos_datos: {"name": "Nuevo nombre", "price": "30.0"}
+    """
+    for r in registros:
+        if r["id"] == str(id_buscar):
+            # Actualizar solo las claves que vienen en nuevos_datos
+            for clave, valor in nuevos_datos.items():
+                if clave in r:
+                    r[clave] = str(valor)
+            return True  # encontrado y actualizado
+    return False  # no encontrado
+
+
+Uso típico:
+
+registros = cargar_csv(RUTA)
+exito = actualizar_registro(registros, 3, {"price": 30.0, "quantity": 5})
+if exito:
+    guardar_csv(RUTA, registros, CAMPOS)
+else:
+    print("ID no encontrado")
+
+2.4. Delete – Eliminar registro
+def eliminar_registro(registros, id_buscar):
+    """Elimina el registro con ese id de la lista."""
+    longitud_inicial = len(registros)
+    registros[:] = [r for r in registros if r["id"] != str(id_buscar)]
+    return len(registros) < longitud_inicial  # True si eliminó algo
+
+
+Uso:
+
+registros = cargar_csv(RUTA)
+exito = eliminar_registro(registros, 2)
+if exito:
+    guardar_csv(RUTA, registros, CAMPOS)
+else:
+    print("ID no encontrado")
+
+3. Fusionar (merge) y sobrescribir CSV
+3.1. Sobrescribir un archivo CSV con otro
+
+Idea: el contenido del archivo B reemplaza totalmente al A.
+
+def sobrescribir_csv(origen, destino):
+    """
+    Copia el contenido de 'origen' y lo escribe en 'destino', 
+    borrando lo que hubiera en 'destino'.
+    """
+    registros = cargar_csv(origen)
+    if not registros:
+        print("Archivo origen vacío o sin registros.")
+        return
+    fieldnames = list(registros[0].keys())
+    guardar_csv(destino, registros, fieldnames)
+
+
+Llamada:
+
+sobrescribir_csv("nuevo_inventario.csv", "inventario.csv")
+
+3.2. Fusionar dos CSV (unir registros)
+
+Caso simple: misma estructura, solo concatenar las filas.
+
+def fusionar_csv(archivo1, archivo2, destino):
+    """
+    Fusiona archivo1 y archivo2 y escribe el resultado en 'destino'.
+    No elimina duplicados.
+    """
+    registros1 = cargar_csv(archivo1)
+    registros2 = cargar_csv(archivo2)
+    registros_fusionados = registros1 + registros2
+
+    if not registros_fusionados:
+        print("No hay registros para fusionar.")
+        return
+
+    fieldnames = list(registros_fusionados[0].keys())
+    guardar_csv(destino, registros_fusionados, fieldnames)
+
+
+Caso con eliminación de duplicados por id
+(si mismo id, se queda el registro del segundo archivo):
+
+def fusionar_sin_duplicados(archivo1, archivo2, destino):
+    registros1 = cargar_csv(archivo1)
+    registros2 = cargar_csv(archivo2)
+    # Índice por id (dict con clave=id)
+    indice = {}
+
+    # Primero los del archivo1
+    for r in registros1:
+        indice[r["id"]] = r
+
+    # Luego los del archivo2 sobreescriben si repiten id
+    for r in registros2:
+        indice[r["id"]] = r
+
+    registros_fusionados = list(indice.values())
+
+    if not registros_fusionados:
+        print("No hay registros para fusionar.")
+        return
+
+    fieldnames = list(registros_fusionados[0].keys())
+    guardar_csv(destino, registros_fusionados, fieldnames)
+
+4. Mostrar CSV tipo hoja de cálculo (tablas alineadas)
+4.1. Versión sin librerías (puro print)
+def mostrar_tabla(registros):
+    """Muestra la lista de diccionarios en forma de tabla alineada."""
+    if not registros:
+        print("No hay datos.")
+        return
+    
+    # Encabezados a partir de las claves del primer registro
+    columnas = list(registros[0].keys())
+
+    # Calcular ancho máximo de cada columna
+    anchos = {}
+    for col in columnas:
+        max_len = len(col)  # longitud del nombre de la columna
+        for r in registros:
+            max_len = max(max_len, len(str(r[col])))
+        anchos[col] = max_len
+
+    # Imprimir encabezado
+    encabezado = " | ".join(col.ljust(anchos[col]) for col in columnas)
+    separador = "-+-".join("-" * anchos[col] for col in columnas)
+    print(encabezado)
+    print(separador)
+
+    # Imprimir filas
+    for r in registros:
+        fila = " | ".join(str(r[col]).ljust(anchos[col]) for col in columnas)
+        print(fila)
+
+
+Uso:
+
+registros = cargar_csv(RUTA)
+mostrar_tabla(registros)
+
+4.2. BONUS (si permiten librerías externas): pandas
+import pandas as pd
+
+df = pd.read_csv("inventario.csv")
+print(df)          # se ve como tabla
+print(df.head(10)) # primeras 10 filas
+
+5. Resumen “tipo chuleta” para examen
+
+Te resumo lo clave para tener en mente:
+
+Importante:
+
+import csv
+
+Abrir archivos con with open(ruta, modo, newline="", encoding="utf-8") as f:
+
+Leer:
+
+lector = csv.DictReader(f)
+
+for fila in lector: registros.append(dict(fila))
+
+Escribir:
+
+escritor = csv.DictWriter(f, fieldnames=campos)
+
+escritor.writeheader()
+
+escritor.writerows(registros)
+
+CRUD:
+
+Create: construir dict, append a la lista, luego guardar_csv.
+
+Read: recorrer lista, imprimir, o buscar por campo (ej. id).
+
+Update: buscar por id, modificar campos del dict, luego guardar_csv.
+
+Delete: filtrar lista con list comprehension y reescribir CSV.
+
+Fusionar:
+
+Cargar dos archivos, concatenar listas y guardar.
+
+Para evitar duplicados → usar dict índice por id.
+
+Sobrescribir:
+
+Cargar origen y usar guardar_csv() sobre el archivo destino (modo "w").
+
+Mostrar tipo hoja de cálculo:
+
+Calcular anchos máximos por columna y usar ljust para alinear.
+
+Si quieres, en otro mensaje puedo convertir esto en una mini “plantilla” de examen (archivo .py con todas las funciones listas para que solo las adaptes).
